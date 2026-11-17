@@ -55,7 +55,7 @@ AppWrangler has no Dock icon (except while its window is open). Look for the **l
 
 ## 3. Take a look around
 
-The panel is a quick overview. It also opens by itself, for 30 seconds and without taking keyboard focus, when AppWrangler has just frozen or flagged an app.
+Click the lasso again or click outside the panel to close it. The panel also opens by itself, for 30 seconds and without taking keyboard focus, when AppWrangler has just frozen or flagged an app.
 
 What you see:
 

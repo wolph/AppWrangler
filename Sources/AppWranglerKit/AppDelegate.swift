@@ -52,6 +52,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 	private let model = AppModel.shared
 	private var statusItem: NSStatusItem!
 	private let popover = NSPopover()
+	private var localClickMonitor: Any?
+	private var globalClickMonitor: Any?
 	private var settingsWindow: NSWindow?
 	/// The panel's contents in a standalone, resizable window (like Activity Monitor).
 	private var mainWindow: NSWindow?
@@ -442,9 +444,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 	// MARK: Popover
 
 	func popoverWillShow(_ notification: Notification) {
+		// AppKit's transient behaviour misses clicks on some menus and nonactivating panels.
+		let clicks: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+		localClickMonitor = NSEvent.addLocalMonitorForEvents(matching: clicks) { [weak self] event in
+			if let self, let window = self.popover.contentViewController?.view.window,
+			   event.window !== window, event.window !== self.statusItem?.button?.window {
+				self.popover.performClose(nil)
+			}
+			return event
+		}
+		globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: clicks) { [weak self] event in
+			guard let self else { return }
+			if let button = self.statusItem?.button, let window = button.window {
+				// The menu bar can deliver the click here before invoking the button's toggle.
+				let bounds: NSRect = window.convertToScreen(button.convert(button.bounds, to: nil))
+				if bounds.contains(event.locationInWindow) { return }
+			}
+			self.popover.performClose(nil)
+		}
 		model.surfaceDidAppear()
 		model.panelDidAppear()
 		model.uiFocused = true
+	}
+
+	func popoverWillClose(_ notification: Notification) {
+		if let localClickMonitor { NSEvent.removeMonitor(localClickMonitor) }
+		if let globalClickMonitor { NSEvent.removeMonitor(globalClickMonitor) }
+		localClickMonitor = nil
+		globalClickMonitor = nil
 	}
 
 	func popoverDidClose(_ notification: Notification) {

@@ -2,6 +2,11 @@
 
 All notable changes to AppWrangler are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- The menu bar panel closes when you click another menu or a panel that does not take focus.
+
 ## [1.7.1] — 2026-10-12
 
 ### Fixed
